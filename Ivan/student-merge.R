@@ -19,7 +19,7 @@ print(nrow(d3)) # 382 students
 
 ########################## Arreglo de los datasets #############################
 
-Por=read.table("student-por.csv",sep=",",header=TRUE)
+Por = read.csv("student-por.csv",sep=",",header=TRUE)
 
 Por$school <- factor(Por$school)
 Por$sex <- factor(Por$sex)
@@ -78,3 +78,4 @@ summary(lm.linear)
 y_hat <- predict(lm.linear, newdata = test)
 
 ecm <- mean((test$G3-round(y_hat)))
+

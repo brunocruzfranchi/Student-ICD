@@ -1,0 +1,6 @@
+
+ - Preparar data:
+http://www.sthda.com/english/wiki/best-practices-in-preparing-data-files-for-importing-into-r
+
+ - Normalidad:
+http://www.sthda.com/english/wiki/normality-test-in-r
