@@ -1,5 +1,6 @@
 
 ############### Abro los datos ###############
+setwd("E:/Bruno/Favaloro/4 Año/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
 
 Por = read.csv("student-por.csv",sep=",",header=TRUE)
 
@@ -29,13 +30,13 @@ summary(lm.linear)
 Por <- data.frame(Por)
 
 #
-forw<-regsubsets(G3~.,data = d1, method = "forward")
+forw<-regsubsets(G3~.,data = Por, method = "forward")
 summary(forw)
 par(mfrow=c(2,2))
 plot(summary(forw)$rss,pch=20,xlab="Modelo", ylab= "RSS")
 plot(summary(forw)$rsq,pch=20,xlab="Modelo", ylab= "R^2")
 plot(summary(forw)$adjr2,pch=20,xlab="Modelo", ylab= "R^2 aj")
-plot(1:8,summary(forw)$cp,pch=20,xlab="Modelo", ylab= "CP")
+plot(summary(forw)$cp,pch=20,xlab="Modelo", ylab= "CP")
 abline(0,1)
 
 #Famrel+Absences+G1+G2
@@ -45,6 +46,8 @@ summary(lm.linear)
 
 ############### Regresion Stepwise ###############
 library(MASS)
+library(caret)
+set.seed(123)
 res.lm <- lm(G3~., data = Por)
 step <- stepAIC(res.lm, direction = "both", trace = FALSE)
 step.model <- train(G3~., data = Por,
@@ -57,5 +60,6 @@ step.model$results
 step.model$finalModel
 # Summary of the model
 summary(step.model$finalModel)
+
 
 

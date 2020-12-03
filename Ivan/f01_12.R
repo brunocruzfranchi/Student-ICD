@@ -29,7 +29,7 @@ shapiro_test(Por.num[[i]])
 # Regresion sin variables explicativas
 
 rlm.vacio <- lm(formula = G3~1, data = Por)
-summary(rlm.vacia)
+summary(rlm.vacio)
 
 # Regresion con todas las variables explicativas
 
@@ -40,7 +40,7 @@ summary(rlm.completo) # Rs = .85 (el modelo explica el 84% de la nota G3)
 # Regresion Forward
 rlm.forward <- step(rlm.vacio,
                     scope = list(lower = rlm.vacio, upper = rlm.completo),
-                    direction = 'forward')
+                    direction = 'forward', k = log(n))
 summary(rlm.forward) # Creeeeeo que el AIC significa Akaike Information Criterion
 # Rs = .85 (el modelo explica el 84% de la nota G3)
 # P-Value < 0.005 (el modelo es significativo)
@@ -68,25 +68,38 @@ model.stepwise <- regsubsets(G3~., data = Por,
                      method = "seqrep")
 summary(model.stepwise)
 
-
 # Train
 install.packages("caret")
 library(caret)
 set.seed(123)
+
 # Set up repeated k-fold cross-validation
-train.control <- trainControl(method = "cv", number = 10)
+train.control <- trainControl(method = "LOOCV")
+
 # Train the model
 step.model <- train(G3~., data = Por,
                     method = "leapSeq", 
                     tuneGrid = data.frame(nvmax = 1:5),
                     trControl = train.control
 )
+
 step.model$results
 step.model$bestTune
 summary(step.model$finalModel)
 coef(step.model$finalModel, 3)
 
 # Pruebo ese modelo
-lm.stepwise <- lm(G3 ~ reason + G1 + G2, 
-   data = Por)
+lm.stepwise <- lm(G3 ~ reason + G1 + G2, data = Por)
 summary(lm.stepwise)
+
+step <- stepAIC(res.lm, direction = "both", trace = FALSE)
+step.model <- train(G3~., data = Por,
+                    method = "lmStepAIC", 
+                    trControl = train.control,
+                    trace = FALSE)
+# Model accuracy
+step.model$results
+# Final model coefficients
+step.model$finalModel
+# Summary of the model
+summary(step.model$finalModel)
