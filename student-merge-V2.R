@@ -107,6 +107,7 @@ variables_nombres <- c("(Intercept)","schoolMS","sexM","age","addressU","famsize
                        "traveltime", "studytime", "failures","schoolsupyes",  "famsupyes",  "paidyes"
                        ,"activitiesyes","nurseryyes", "higheryes", "internetyes", "romanticyes", "famrel",
                        "freetime","goout", "Dalc", "Walc", "health","absences","G1","G2")
+
 colnames(matrix_var) <- variables_nombres
 
 for (k in 1:400) {
@@ -209,6 +210,72 @@ umbral <- max(matrix_var)*0.40
 
 df <- data.frame(Variables = variables_nombres[matrix_var>umbral],
                  Frecuencia = matrix_var[matrix_var>umbral])
+
+df.frecuencia <- function(nombre_dataset, n_umbral, iteraciones, metodo){
+  if (nombre_dataset == 'Math'){
+    n <- 42
+    matrix_var <- rep(0L, n)
+    variables_nombres <- c("(Intercept)","schoolMS","sexM","age","addressU","famsizeLE3", "PstatusT","Medu",
+                           "Fedu","Mjobhealth","Mjobother","Mjobservices","Mjobteacher","Fjobhealth", "Fjobother","Fjobservices",
+                           "Fjobteacher", "reasonhome", "reasonother", "reasonreputation", "guardianmother","guardianother",
+                           "traveltime", "studytime", "failures","schoolsupyes",  "famsupyes",  "paidyes"
+                           ,"activitiesyes","nurseryyes", "higheryes", "internetyes", "romanticyes", "famrel",
+                           "freetime","goout", "Dalc", "Walc", "health","absences","G1","G2")
+    dataset <- Math
+  }
+  else{
+    n <- 41
+    matrix_var <- rep(0L, n)
+    variables_nombres <- c("(Intercept)","schoolMS","sexM","age","addressU","famsizeLE3",
+                           "PstatusT","Medu","Fedu",
+                           "Mjobhealth","Mjobother","Mjobservices","Mjobteacher","Fjobhealth",
+                           "Fjobother","Fjobservices",
+                           "Fjobteacher","reasonhome","reasonother","reasonreputation"
+                           ,"guardianmother","guardianother",
+                           "traveltime","studytime","failures","schoolsupyes","famsupyes","activitiesyes","nurseryyes",
+                           "higheryes","internetyes",
+                           "romanticyes","famrel","freetime","goout","Dalc","Walc","health","absences","G1","G2")
+    dataset <- Por
+  }
+  
+  for (k in 1:iteraciones) {
+    set.seed(k)  
+    sample = sample.split(dataset, SplitRatio = 0.80) 
+    train = subset(dataset, sample == TRUE)
+    
+    reg.var<-regsubsets(G3~., nbest=1, nvmax=41,
+                        force.in=NULL, force.out=NULL, intercept=TRUE,
+                        method=c(metodo), data = train)
+    
+    reg.summary = summary(reg.var)
+    
+    cp_min = which.min(reg.summary$cp)
+    
+    n_aux <- c()
+    n_aux <- names(which(reg.summary$which[cp_min,]))
+    
+    for (i in 1:length(n_aux)) {
+      aux <- n_aux[i]
+      for (j in 1:n) {
+        if(aux == variables_nombres[j])
+          matrix_var[j] = matrix_var[j] + 1
+      }
+    }
+    
+  }
+  
+  #Obtengo aquello que tengan mayor relevancia de acuerdo con un umbral
+  
+  umbral <- max(matrix_var)*n_umbral
+  
+  df <- data.frame(Variables = variables_nombres[matrix_var>umbral],
+                   Frecuencia = matrix_var[matrix_var>umbral])
+  
+  return(df)
+}
+
+df <- df.frecuencia('Math', 0.50, 400, "forward")
+
 
 colourCount = length(matrix_var[matrix_var>umbral])
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
