@@ -93,6 +93,8 @@ em.ridge
 # Lasso
 Lasso.fit <- cv.glmnet(x.train, y.train, type.measure = 'mse',
                        alpha = 1, family = 'gaussian') 
+Lasso.fit$lambda.min
+Lasso.fit$lambda.1se
 Lasso.pred.1se <- predict(Lasso.fit, s = Lasso.fit$lambda.1se, newx = x.test)
 Lasso.pred.min <- predict(Lasso.fit, s = Lasso.fit$lambda.min, newx = x.test)
 mse.lasso.min <- mean((y.test - Lasso.pred.min)^2)
@@ -100,9 +102,11 @@ mse.lasso.1se <- mean((y.test - Lasso.pred.1se)^2)
 mse.lasso.min
 mse.lasso.1se
 
-# Elastic Net
+# Elastic Net en alfa = x
 EN.fit <- cv.glmnet(x.train, y.train, type.measure = 'mse',
-                       alpha = 0.5, family = 'gaussian') 
+                       alpha = 0.7, family = 'gaussian') 
+EN.fit$lambda.min
+EN.fit$lambda.1se
 EN.pred <- predict(EN.fit, s = EN.fit$lambda.1se, newx = x.test)
 em.EN <- mean(sqrt((y.test - round(EN.pred))^2)*5)
 em.EN
@@ -123,13 +127,30 @@ for (i in 1:10) {
   EN.pred.mult <- predict(list.of.fits[[fit.name]],
                        s = list.of.fits[[fit.name]]$lambda.1se, 
                        newx = x.test) 
-  em.EN.mult <- mean(sqrt((y.test - round(EN.pred.mult))^2)*5) 
+  em.EN.mult <- mean((y.test - EN.pred.mult)^2)
   temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
-  results <- rbind(results, temp)
+  results.1se <- rbind(results, temp)
 }
-results
+for (i in 1:10) {
+  fit.name <- paste0('alpha', i/10)
+  
+  EN.pred.mult <- predict(list.of.fits[[fit.name]],
+                          s = list.of.fits[[fit.name]]$lambda.min, 
+                          newx = x.test) 
+  em.EN.mult <- mean((y.test - EN.pred.mult)^2)
+  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
+  results.min <- rbind(results, temp)
+}
+results.min
+results.1se
 
+Lasso.fit <- cv.glmnet(x.train, y.train, type.measure = 'mse',
+                       alpha = 1, family = 'gaussian') 
+lasso_modelo_1se <- glmnet(x_train, y_train,
+                           alpha = 1, lambda = Lasso.fit$lambda.1se)
 
+lasso_modelo_min <- glmnet(x_train, y_train,
+                           alpha = 1, lambda = Lasso.fit$lambda.min)
 
 
 

@@ -1,6 +1,6 @@
 
 ############### Abro los datos ###############
-setwd("E:/Bruno/Favaloro/4 Año/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
+setwd("E:/Documentos/ING_BIOMEDICA/Cuarto Año/Segundo Cuatrimestre/Introducción a la Ciencia de Datos/Student-ICD")
 
 Por = read.csv("student-por.csv",sep=",",header=TRUE)
 
