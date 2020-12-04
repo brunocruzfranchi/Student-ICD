@@ -554,7 +554,6 @@ g9 <- ggplot(data = df.Por.Lasso, mapping = aes(x = Variables, y = Frecuencia, f
 print(g9 + mynamestheme + labs( title= "Portugues - Lasso", y="Frecuencia", 
                                 x = "Variables"))
 
-
 #_________________________ Regresion Lasso Error ###############################
 
 #________ Matematica
@@ -572,7 +571,8 @@ x_test <- model.matrix(G3~., data = Math.test)[, -1]
 y_test <- Math.test$G3
 
 
-cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, type.measure = "mse", standardize = TRUE)
+cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, 
+                       type.measure = "mse", standardize = TRUE)
 
 #Valor Minimo de MSE
 min(cv_output$cvm)
@@ -585,7 +585,6 @@ cv_output$cvm[cv_output$lambda == cv_output$lambda.1se]
 cv_output$lambda.1se
 
 best_lam <- cv_output$lambda.min
-
 
 lasso_modelo <- glmnet(x_train, y_train,
                        alpha = 1, lambda = best_lam,
@@ -621,7 +620,8 @@ x_test <- model.matrix(G3~., data = Por.test)[, -1]
 y_test <- Por.test$G3
 
 
-cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, type.measure = "mse", standardize = TRUE)
+cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, 
+                       type.measure = "mse")
 
 #Valor Minimo de MSE
 min(cv_output$cvm)
@@ -636,8 +636,7 @@ cv_output$lambda.1se
 best_lam <- cv_output$lambda.min
 
 lasso_modelo <- glmnet(x_train, y_train,
-                       alpha = 1, lambda = best_lam,
-                       standardize = TRUE)
+                       alpha = 1, lambda = best_lam)
 
 predicciones_train <- predict(lasso_modelo, newx = x_train)
 Por_training_mse <- mean((predicciones_train - y_train)^2)
