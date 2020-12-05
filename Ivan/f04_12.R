@@ -99,7 +99,10 @@ Lasso.pred.1se <- predict(Lasso.fit, s = Lasso.fit$lambda.1se, newx = x.test)
 Lasso.pred.min <- predict(Lasso.fit, s = Lasso.fit$lambda.min, newx = x.test)
 mse.lasso.min <- mean((y.test - Lasso.pred.min)^2)
 mse.lasso.1se <- mean((y.test - Lasso.pred.1se)^2)
+
+Lasso.fit$lambda.min
 mse.lasso.min
+Lasso.fit$lambda.1se
 mse.lasso.1se
 
 # Elastic Net en alfa = x
