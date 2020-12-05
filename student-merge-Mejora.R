@@ -17,7 +17,7 @@ library(DataExplorer)
 library(dplyr)
 library(broom)
 
-setwd("E:/Bruno/Favaloro/4 Año/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
+setwd("E:/Bruno/Favaloro/4 Aï¿½o/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
 
 #_________________________ Graficos #####################################
 
@@ -182,7 +182,7 @@ df.frecuencia <- function(nombre_dataset, n_umbral, iteraciones, metodo){
   return(df)
 }
 
-#____________ Matemática
+#____________ Matemï¿½tica
 
 df.Math.forward <- df.frecuencia('Math', 0.50, 400, "forward")
 df.Math.backward <- df.frecuencia('Math', 0.50, 400, "backward")
@@ -215,13 +215,13 @@ g3 <- ggplot(data = df.Math.hybrid, mapping = aes(x = Variables, y = Frecuencia,
   theme_light()+
   theme_minimal()
 
-print(g1 + mynamestheme + labs( title= "Matemática - Forward", y="Frecuencia", 
+print(g1 + mynamestheme + labs( title= "Matemï¿½tica - Forward", y="Frecuencia", 
                                 x = "Variables"))
-print(g2 + mynamestheme + labs( title= "Matemática - Backward", y="Frecuencia", 
+print(g2 + mynamestheme + labs( title= "Matemï¿½tica - Backward", y="Frecuencia", 
                                 x = "Variables"))
-print(g3 + mynamestheme + labs( title= "Matemática - Hybrid", y="Frecuencia", 
+print(g3 + mynamestheme + labs( title= "Matemï¿½tica - Hybrid", y="Frecuencia", 
                                 x = "Variables"))
-#________________ Portugués
+#________________ Portuguï¿½s
 
 
 df.Por.forward <- df.frecuencia('Por', 0.50, 400, "forward")
@@ -253,11 +253,11 @@ g6 <- ggplot(data = df.Por.hybrid, mapping = aes(x = Variables, y = Frecuencia, 
   theme_light()+
   theme_minimal()
 
-print(g4 + mynamestheme + labs( title= "Portugués - Forward", y="Frecuencia", 
+print(g4 + mynamestheme + labs( title= "Portuguï¿½s - Forward", y="Frecuencia", 
                                 x = "Variables"))
-print(g5 + mynamestheme + labs( title= "Portugués - Backward", y="Frecuencia", 
+print(g5 + mynamestheme + labs( title= "Portuguï¿½s - Backward", y="Frecuencia", 
                                 x = "Variables"))
-print(g6 + mynamestheme + labs( title= "Portugués - Hybrid", y="Frecuencia", 
+print(g6 + mynamestheme + labs( title= "Portuguï¿½s - Hybrid", y="Frecuencia", 
                                 x = "Variables"))
 
 #_________________________ Calculo del Error ###################################
@@ -288,7 +288,7 @@ error_prediccion <- function(predicciones, dataset){
   return(mse) 
 }
 
-#______________ Matemática
+#______________ Matemï¿½tica
 
 Math.lineal.forward <- lm(G3~absences+activities+age+famrel+Fjob+
                             G1+G2,data=Math.train)
@@ -306,7 +306,7 @@ error.Math <- c(error_prediccion(Math.pred.forward,Math.test),
                 error_prediccion(Math.pred.hybrid,Math.test))
 error.Math
 
-#______________ Portugués
+#______________ Portuguï¿½s
 
 Por.lineal.forward <- lm(G3~absences+failures+G1+G2+reason+Mjob+
                            sex+traveltime,data=Por.train)
@@ -328,8 +328,8 @@ error.Por
 #______________ Graficos
 
 df.errores <- data.frame(Error=c(error.Math,error.Por),
-                         Dataset=c('Matemática','Matemática','Matemática',
-                                   'Portugués','Portugués','Portugués'),
+                         Dataset=c('Matemï¿½tica','Matemï¿½tica','Matemï¿½tica',
+                                   'Portuguï¿½s','Portuguï¿½s','Portuguï¿½s'),
                          Metodo=c('Forward','Backward','Hybrid',
                                   'Forward','Backward','Hybrid'))
 
@@ -340,13 +340,13 @@ g7 <- ggplot(data = df.errores, mapping = aes(x = Dataset, y = Error, fill = Met
   theme_light()+
   theme_minimal()
 
-print(g7 + mynamesthemev2 + labs( title= "Errores - Selección Stepwise", 
+print(g7 + mynamesthemev2 + labs( title= "Errores - Selecciï¿½n Stepwise", 
                                   y="Error", 
                                   x = "Datasets"))
 
 #_________________________ Calculo del Error CV ################################
 
-#_____________ Matemática
+#_____________ Matemï¿½tica
 
 error_prediccion <- function(predicciones, dataset){
   for (i in 1:length(predicciones)) {
@@ -383,7 +383,7 @@ for(i in 1:nrow(Math)){
 errores.cv.Math <- apply(errores.cv.Math, 2, mean)
 errores.cv.Math
 
-#_____________ Portugués
+#_____________ Portuguï¿½s
 
 error_prediccion <- function(predicciones, dataset){
   for (i in 1:length(predicciones)) {
@@ -423,8 +423,8 @@ errores.cv.Por
 #______________ Graficos
 
 df.errores.cv <- data.frame(Error=c(errores.cv.Math,errores.cv.Por),
-                         Dataset=c('Matemática','Matemática','Matemática',
-                                   'Portugués','Portugués','Portugués'),
+                         Dataset=c('Matemï¿½tica','Matemï¿½tica','Matemï¿½tica',
+                                   'Portuguï¿½s','Portuguï¿½s','Portuguï¿½s'),
                          Metodo=c('Forward','Backward','Hybrid',
                                   'Forward','Backward','Hybrid'))
 # Plot
@@ -434,7 +434,7 @@ g11 <- ggplot(data = df.errores.cv, mapping = aes(x = Dataset, y = Error, fill =
   theme_light()+
   theme_minimal()
 
-print(g11 + mynamesthemev2 + labs( title= "Errores CV - Selección Stepwise", 
+print(g11 + mynamesthemev2 + labs( title= "Errores CV - Selecciï¿½n Stepwise", 
                                   y="ECM", 
                                   x = "Datasets"))
 
@@ -514,7 +514,7 @@ df.frecuencia.lasso <- function(nombre_dataset, n_umbral, iteraciones){
   return(df)
 }
 
-#______________ Matemática
+#______________ Matemï¿½tica
 
 df.Math.Lasso <- df.frecuencia.lasso('Math', 0.25 ,400)
 
@@ -530,10 +530,10 @@ g8 <- ggplot(data = df.Math.Lasso, mapping = aes(x = Variables, y = Frecuencia, 
   theme_light()+
   theme_minimal()
 
-print(g8 + mynamestheme + labs( title= "Matemática - Lasso", y="Frecuencia", 
+print(g8 + mynamestheme + labs( title= "Matemï¿½tica - Lasso", y="Frecuencia", 
                                 x = "Variables"))
       
-#_______________ Portugués
+#_______________ Portuguï¿½s
 
 df.Por.Lasso <- df.frecuencia.lasso('Por', 0.25 ,400)
 
@@ -549,13 +549,13 @@ g9 <- ggplot(data = df.Por.Lasso, mapping = aes(x = Variables, y = Frecuencia, f
   theme_light()+
   theme_minimal()
 
-print(g9 + mynamestheme + labs( title= "Portugués - Lasso", y="Frecuencia", 
+print(g9 + mynamestheme + labs( title= "Portuguï¿½s - Lasso", y="Frecuencia", 
                                 x = "Variables"))
 
 
 #_________________________ Regresion Lasso Error ###############################
 
-#________ Matemática
+#________ Matemï¿½tica
 
 set.seed(123)
 
@@ -608,7 +608,7 @@ tss <- sum((predicciones_test - mean(predicciones_test)) ^ 2)
 rsq <- 1 - rss/tss
 rsq
 
-#________ Portugués
+#________ Portuguï¿½s
 
 cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, 
                        type.measure = "mse")
@@ -676,7 +676,7 @@ for(i in 1:nrow(Math)){
 errores.cv.Math <- apply(errores.cv.Math, 2, mean)
 errores.cv.Math
 
-#_____________ Portugués
+#_____________ Portuguï¿½s
 
 error_prediccion <- function(predicciones, dataset){
   for (i in 1:length(predicciones)) {
@@ -746,7 +746,7 @@ g10 <- regularizacion %>%
   theme_light()+
   theme_minimal() 
 
-print(g10 + mynamesthemev2 + labs( title= "Coeficientes del modelo en función de la regularización", 
+print(g10 + mynamesthemev2 + labs( title= "Coeficientes del modelo en funciï¿½n de la regularizaciï¿½n", 
                                     y="Coeficientes", 
                                     x = "Lambda"))
 
@@ -831,7 +831,7 @@ Edf.frecuencia.ridge <- function(nombre_dataset, n_umbral, iteraciones){
   return(df)
 }
 
-#______________ Matemática
+#______________ Matemï¿½tica
 
 df.Math.Lasso <- df.frecuencia.lasso('Math', 0.25 ,400)
 
@@ -847,10 +847,10 @@ g8 <- ggplot(data = df.Math.Lasso, mapping = aes(x = Variables, y = Frecuencia, 
   theme_light()+
   theme_minimal()
 
-print(g8 + mynamestheme + labs( title= "Matemática - Lasso", y="Frecuencia", 
+print(g8 + mynamestheme + labs( title= "Matemï¿½tica - Lasso", y="Frecuencia", 
                                 x = "Variables"))
 
-#_______________ Portugués
+#_______________ Portuguï¿½s
 
 df.Por.Lasso <- df.frecuencia.lasso('Por', 0.25 ,400)
 
@@ -866,10 +866,10 @@ g9 <- ggplot(data = df.Por.Lasso, mapping = aes(x = Variables, y = Frecuencia, f
   theme_light()+
   theme_minimal()
 
-print(g9 + mynamestheme + labs( title= "Portugués - Lasso", y="Frecuencia", 
+print(g9 + mynamestheme + labs( title= "Portuguï¿½s - Lasso", y="Frecuencia", 
                                 x = "Variables"))
 
-#________ Matemática
+#________ Matemï¿½tica
 
 set.seed(123)
 
@@ -896,7 +896,7 @@ predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test
 Math_test_mse_ridge <- mean((predicciones_test - y_test)^2)
 paste("Error (mse) de test:", Math_test_mse_ridge)
 
-#________ Portugués
+#________ Portuguï¿½s
 
 set.seed(123)
 
@@ -1028,8 +1028,8 @@ Por.test.net <- results.min$mse
 #_________________________ Valores de Error para todas los metodos ##############
 df.errores <- data.frame(Error=c(error.Math,Math_test_mse,Math_test_mse_ridge,Math.test.net,
                                  error.Por,Por_test_mse,Por_test_mse_ridge,Por.test.net),
-                         Dataset=c('Matemática','Matemática','Matemática','Matemática','Matemática','Matemática',
-                                   'Portugués','Portugués','Portugués','Portugués','Portugués','Portugués'),
+                         Dataset=c('Matemï¿½tica','Matemï¿½tica','Matemï¿½tica','Matemï¿½tica','Matemï¿½tica','Matemï¿½tica',
+                                   'Portuguï¿½s','Portuguï¿½s','Portuguï¿½s','Portuguï¿½s','Portuguï¿½s','Portuguï¿½s'),
                          Metodo=c('Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet',
                                   'Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet'))
 
