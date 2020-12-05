@@ -92,12 +92,23 @@ em.ridge
 
 # Lasso
 Lasso.fit <- cv.glmnet(x.train, y.train, type.measure = 'mse',
-                       alpha = 1, family = 'gaussian') 
-Lasso.pred.1se <- predict(Lasso.fit, s = Lasso.fit$lambda.1se, newx = x.test)
-Lasso.pred.min <- predict(Lasso.fit, s = Lasso.fit$lambda.min, newx = x.test)
+                       alpha = 1, family = 'gaussian')
+
+lasso_modelo_1se <- glmnet(x.train, y.train,
+                       alpha = 1, lambda = Lasso.fit$lambda.1se)
+
+lasso_modelo_min <- glmnet(x.train, y.train,
+                           alpha = 1, lambda = Lasso.fit$lambda.min)
+
+Lasso.pred.1se <- predict(lasso_modelo_1se, newx = x.test)
+Lasso.pred.min <- predict(lasso_modelo_min, newx = x.test)
+
 mse.lasso.min <- mean((y.test - Lasso.pred.min)^2)
 mse.lasso.1se <- mean((y.test - Lasso.pred.1se)^2)
+
+Lasso.fit$lambda.min
 mse.lasso.min
+Lasso.fit$lambda.1se
 mse.lasso.1se
 
 # Elastic Net
