@@ -366,18 +366,19 @@ errores.cv.Math <- matrix(0, nrow=nrow(Math), ncol=3)
 colnames(errores.cv.Math) <- c('forward','backward','hybrid')
 
 for(i in 1:nrow(Math)){
+  i=1
   Math.t <- Math[-i,]  
   Math.lineal.forward <- lm(G3~absences+activities+age+famrel+Fjob+G1+G2,data=Math.t)
   Math.lineal.backward <- lm(G3~absences+activities+age+famrel+G1+G2,data=Math.t)
   Math.lineal.hybrid <- lm(G3~absences+activities+age+famrel+Fjob+G1+G2+Walc,data=Math.t)
   
-  Math.pred.forward <- predict(Math.lineal.forward, newdata = Math.t)
-  Math.pred.backward <- predict(Math.lineal.backward, newdata = Math.t)
-  Math.pred.hybrid <- predict(Math.lineal.hybrid, newdata = Math.t)
+  Math.pred.forward <- predict(Math.lineal.forward, newdata = Math[i,])
+  Math.pred.backward <- predict(Math.lineal.backward, newdata = Math[i,])
+  Math.pred.hybrid <- predict(Math.lineal.hybrid, newdata = Math[i,])
   
-  errores.cv.Math[i,] <- c(error_prediccion(Math.pred.forward,Math.t),
-                  error_prediccion(Math.pred.backward,Math.t),
-                  error_prediccion(Math.pred.hybrid,Math.t))
+  errores.cv.Math[i,] <- c(error_prediccion(Math.pred.forward,Math[i,]),
+                  error_prediccion(Math.pred.backward,Math[i,]),
+                  error_prediccion(Math.pred.hybrid,Math[i,]))
 }
 
 errores.cv.Math <- apply(errores.cv.Math, 2, mean)
@@ -408,13 +409,13 @@ for(i in 1:nrow(Por)){
   Por.lineal.backward <- lm(G3~failures+G1+G2+reason+school+sex+traveltime,data=Por.t)
   Por.lineal.hybrid <- lm(G3~failures+G1+G2+Mjob+reason+sex+traveltime,data=Por.t)
   
-  Por.pred.forward <- predict(Por.lineal.forward, newdata = Por.t)
-  Por.pred.backward <- predict(Por.lineal.backward, newdata = Por.t)
-  Por.pred.hybrid <- predict(Por.lineal.hybrid, newdata = Por.t)
+  Por.pred.forward <- predict(Por.lineal.forward, newdata = Por[i,])
+  Por.pred.backward <- predict(Por.lineal.backward, newdata = Por[i,])
+  Por.pred.hybrid <- predict(Por.lineal.hybrid, newdata = Por[i,])
   
-  errores.cv.Por[i,] <- c(error_prediccion(Por.pred.forward,Por.t),
-                           error_prediccion(Por.pred.backward,Por.t),
-                           error_prediccion(Por.pred.hybrid,Por.t))
+  errores.cv.Por[i,] <- c(error_prediccion(Por.pred.forward,Por[i,]),
+                           error_prediccion(Por.pred.backward,Por[i,]),
+                           error_prediccion(Por.pred.hybrid,Por[i,]))
 }
 
 errores.cv.Por <- apply(errores.cv.Por, 2, mean)
@@ -555,6 +556,20 @@ print(g9 + mynamestheme + labs( title= "Portugués - Lasso", y="Frecuencia",
 
 #_________________________ Regresion Lasso Error ###############################
 
+error_prediccionv2 <- function(predicciones, dataset){
+  for (i in 1:length(predicciones)) {
+    if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
+      predicciones[i] <- floor(predicciones[i])
+    }
+    else
+      predicciones[i] <- ceiling(predicciones[i])
+  }
+  
+  mse <- mean((dataset - predicciones)^2)
+  
+  return(mse) 
+}
+
 #________ Matemática
 
 set.seed(123)
@@ -585,63 +600,44 @@ cv_output$cvm[cv_output$lambda == cv_output$lambda.1se]
 # lambda for this MSE
 cv_output$lambda.1se
 
-best_lam <- cv_output$lambda.min
-
-lasso_modelo <- glmnet(x_train, y_train,
-                       alpha = 1, lambda = best_lam,
-                       standardize = TRUE)
-
-predicciones_train <- predict(lasso_modelo, newx = x_train)
 predicciones_train <- predict(cv_output, s = cv_output$lambda.min , newx = x_train)
-Math_training_mse <- mean((predicciones_train - y_train)^2)
+Math_training_mse <- error_prediccionv2(predicciones_train,y_train)
 paste("Error (mse) de entrenamiento:", Math_training_mse)
 
 
-predicciones_test <- predict(lasso_modelo, newx = x_test)
 predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
-Math_test_mse <- mean((predicciones_test - y_test)^2)
+Math_test_mse <- error_prediccionv2(predicciones_test,y_test)
 paste("Error (mse) de test:", Math_test_mse)
 
-
-rss <- sum((predicciones_test - y_test) ^ 2)
-tss <- sum((predicciones_test - mean(predicciones_test)) ^ 2)
-rsq <- 1 - rss/tss
-rsq
-
 #________ Portugués
+
+set.seed(123)
+
+sample = sample.split(Por, SplitRatio = 0.80) 
+Por.train = subset(Por, sample == TRUE)
+Por.test = subset(Por, sample == FALSE)
+
+x_train <- model.matrix(G3~., data = Por.train)[, -1]
+y_train <- Por.train$G3
+
+x_test <- model.matrix(G3~., data = Por.test)[, -1]
+y_test <- Por.test$G3
+
 
 cv_output <- cv.glmnet(x_train, y_train, alpha = 1, nfolds = 10, 
                        type.measure = "mse")
 
-#Valor Minimo de MSE
-min(cv_output$cvm)
-#Valor Minimo de lambda
-cv_output$lambda.min
-
-# 1 st.error of min MSE
-cv_output$cvm[cv_output$lambda == cv_output$lambda.1se]
-# lambda for this MSE
-cv_output$lambda.1se
-
-best_lam <- cv_output$lambda.min
-
-lasso_modelo <- glmnet(x_train, y_train,
-                       alpha = 1, lambda = best_lam)
-
-predicciones_train <- predict(lasso_modelo, newx = x_train)
 predicciones_train <- predict(cv_output, s = cv_output$lambda.min , newx = x_train)
-Por_training_mse <- mean((predicciones_train - y_train)^2)
+Por_training_mse <- error_prediccionv2(predicciones_train,y_train)
 paste("Error (mse) de entrenamiento:", Por_training_mse)
 
-
-predicciones_test <- predict(lasso_modelo, newx = x_test)
 predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
-Por_test_mse <- mean((predicciones_test - y_test)^2)
+Por_test_mse <- error_prediccionv2(predicciones_test,y_test)
 paste("Error (mse) de test:", Por_test_mse)
 
 #_________________________ Regresion Lasso Error CV ###############################
 
-error_prediccion <- function(predicciones, dataset){
+error_prediccionv2 <- function(predicciones, dataset){
   for (i in 1:length(predicciones)) {
     if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
       predicciones[i] <- floor(predicciones[i])
@@ -650,68 +646,56 @@ error_prediccion <- function(predicciones, dataset){
       predicciones[i] <- ceiling(predicciones[i])
   }
   
-  mse <- mean((dataset$G3 - predicciones)^2)
+  mse <- mean((dataset - predicciones)^2)
   
   return(mse) 
 }
 
-errores.cv.Math <- matrix(0, nrow=nrow(Math), ncol=3)
-colnames(errores.cv.Math) <- c('forward','backward','hybrid')
+#____________ Matematica
 
-for(i in 1:nrow(Math)){
-  Math.t <- Math[-i,]  
-  Math.lineal.forward <- lm(G3~absences+activities+age+famrel+Fjob+G1+G2,data=Math.t)
-  Math.lineal.backward <- lm(G3~absences+activities+age+famrel+G1+G2,data=Math.t)
-  Math.lineal.hybrid <- lm(G3~absences+activities+age+famrel+Fjob+G1+G2+Walc,data=Math.t)
-  
-  Math.pred.forward <- predict(Math.lineal.forward, newdata = Math.t)
-  Math.pred.backward <- predict(Math.lineal.backward, newdata = Math.t)
-  Math.pred.hybrid <- predict(Math.lineal.hybrid, newdata = Math.t)
-  
-  errores.cv.Math[i,] <- c(error_prediccion(Math.pred.forward,Math.t),
-                           error_prediccion(Math.pred.backward,Math.t),
-                           error_prediccion(Math.pred.hybrid,Math.t))
+x.train <- model.matrix(G3~., data = Math)[, -1]
+y.train <- Math$G3
+
+errores.cv.Math.Lasso <- matrix(0, nrow=nrow(Math), ncol=1)
+
+folds <- rep_len(1:nrFolds, nrow(Math))
+
+nrFolds <- nrow(Math)
+
+cv <- cv.glmnet(x.train, y.train, alpha = 1, type.measure = "mse",
+                grouped = FALSE, nfolds = nrFolds)
+
+for (k in 1:nrFolds) {
+  fold <- which(folds == k)
+  model <- glmnet(x.train[-k, ], y.train[-k], alpha = 1, lambda = cv$lambda.min)
+  predictions <- predict(model, newx = x.train[k, , drop = F])
+  errores.cv.Math.Lasso[k] <- mean((predictions - y.train[k])^2)
 }
 
-errores.cv.Math <- apply(errores.cv.Math, 2, mean)
-errores.cv.Math
+error.cv.Math.Lasso <- mean(errores.cv.Math.Lasso)
 
 #_____________ Portugués
 
-error_prediccion <- function(predicciones, dataset){
-  for (i in 1:length(predicciones)) {
-    if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
-      predicciones[i] <- floor(predicciones[i])
-    }
-    else
-      predicciones[i] <- ceiling(predicciones[i])
-  }
-  
-  mse <- mean((dataset$G3 - predicciones)^2)
-  
-  return(mse) 
+errores.cv.Por.Lasso <- matrix(0, nrow=nrow(Por), ncol=1)
+
+x.train <- model.matrix(G3~., data = Por)[, -1]
+y.train <- Por$G3
+
+nrFolds <- nrow(Por)
+
+folds <- rep_len(1:nrFolds, nrow(Por))
+
+cv <- cv.glmnet(x.train, y.train, alpha = 1, type.measure = "mse",
+                grouped = FALSE, nfolds = nrFolds)
+
+for (k in 1:nrFolds) {
+  fold <- which(folds == k)
+  model <- glmnet(x.train[-k, ], y.train[-k], alpha = 1, lambda = cv$lambda.min)
+  predictions <- predict(model, newx = x.train[k, , drop = F])
+  errores.cv.Por.Lasso[k] <- mean((predictions - y.train[k])^2)
 }
 
-errores.cv.Por <- matrix(0, nrow=nrow(Por), ncol=3)
-colnames(errores.cv.Por) <- c('forward','backward','hybrid')
-
-for(i in 1:nrow(Por)){
-  Por.t <- Por[-i,]  
-  Por.lineal.forward <- lm(G3~absences+failures+G1+G2+reason+Mjob+sex+traveltime,data=Por.t)
-  Por.lineal.backward <- lm(G3~failures+G1+G2+reason+school+sex+traveltime,data=Por.t)
-  Por.lineal.hybrid <- lm(G3~failures+G1+G2+Mjob+reason+sex+traveltime,data=Por.t)
-  
-  Por.pred.forward <- predict(Por.lineal.forward, newdata = Por.t)
-  Por.pred.backward <- predict(Por.lineal.backward, newdata = Por.t)
-  Por.pred.hybrid <- predict(Por.lineal.hybrid, newdata = Por.t)
-  
-  errores.cv.Por[i,] <- c(error_prediccion(Por.pred.forward,Por.t),
-                          error_prediccion(Por.pred.backward,Por.t),
-                          error_prediccion(Por.pred.hybrid,Por.t))
-}
-
-errores.cv.Por <- apply(errores.cv.Por, 2, mean)
-errores.cv.Por
+error.cv.Por.Lasso <- mean(errores.cv.Por.Lasso)
 
 #_________________________ Graficos Lasso ######################
 # Inspecting beta coefficients
@@ -757,7 +741,7 @@ coefplot(lasso.modelo, lambda=cv_output$lambda.min, sort="magnitude")
 
 #_________________________ Regresion Ridge Error  #############################
 
-Edf.frecuencia.ridge <- function(nombre_dataset, n_umbral, iteraciones){
+df.frecuencia.ridge <- function(nombre_dataset, n_umbral, iteraciones){
   if (nombre_dataset == 'Math'){
     n <- 42
     matrix_var <- rep(0L, n)
@@ -922,6 +906,10 @@ predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test
 Por_test_mse_ridge <- mean((predicciones_test - y_test)^2)
 paste("Error (mse) de test:", Por_test_mse_ridge)
 
+
+#_________________________ Regresion Ridge Error CV ############################
+
+
 #_________________________ Analisis Regresion Elastic Net ######################
 
 #______ Matematica
@@ -1025,7 +1013,12 @@ for (i in 1:10) {
 
 Por.test.net <- results.min$mse
 
+
+
+#_________________________ Regresion Elastis Ner Error CV ######################
+
 #_________________________ Valores de Error para todas los metodos ##############
+
 df.errores <- data.frame(Error=c(error.Math,Math_test_mse,Math_test_mse_ridge,Math.test.net,
                                  error.Por,Por_test_mse,Por_test_mse_ridge,Por.test.net),
                          Dataset=c('Matemática','Matemática','Matemática','Matemática','Matemática','Matemática',
@@ -1045,3 +1038,24 @@ print(g12 + mynamesthemev2 + labs( title= "Resultados",
                                    y="ECM", 
                                    x = "Datasets"))
 
+#_________________________ Valores de Error CV para todas los metodos ##############
+
+
+df.errores.cv <- data.frame(Error=c(errores.cv.Math,error.cv.Math.Lasso,Math_test_mse_ridge,Math.test.net,
+                                 errores.cv.Por,error.cv.Por.Lasso,Por_test_mse_ridge,Por.test.net),
+                         Dataset=c('Matemática','Matemática','Matemática','Matemática','Matemática','Matemática',
+                                   'Portugués','Portugués','Portugués','Portugués','Portugués','Portugués'),
+                         Metodo=c('Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet',
+                                  'Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet'))
+
+getPalette = colorRampPalette(brewer.pal(5, "Set1"))
+# Plot
+g14 <- ggplot(data = df.errores.cv, mapping = aes(x = Dataset, y = Error, fill = Metodo)) +
+  geom_bar(stat = "identity",position = "dodge")+
+  scale_fill_manual(values = getPalette(nrow(df.errores.cv)))+
+  theme_light()+
+  theme_minimal()
+
+print(g14 + mynamesthemev2 + labs( title= "Resultados - CV", 
+                                   y="ECM", 
+                                   x = "Datasets"))
