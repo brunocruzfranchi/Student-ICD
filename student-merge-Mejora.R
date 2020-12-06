@@ -13,12 +13,39 @@ library(ISLR)
 library(coefplot)
 library(tidyverse)
 library(skimr)
-library(DataExplorer)
+# library(DataExplorer)
 library(dplyr)
 library(broom)
 
-setwd("E:/Bruno/Favaloro/4 Aï¿½o/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
+setwd("E:/Documentos/ING_BIOMEDICA/Cuarto Año/Segundo Cuatrimestre/Introducción a la Ciencia de Datos/Student-ICD")
+#_________________________ Funciones #####################################
 
+error_prediccion <- function(predicciones, dataset){
+  for (i in 1:length(predicciones)) {
+    if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
+      predicciones[i] <- floor(predicciones[i])
+    }
+    else
+      predicciones[i] <- ceiling(predicciones[i])
+  }
+  
+  mse <- mean((dataset$G3 - predicciones)^2)
+  
+  return(mse) 
+}
+error_prediccionv2 <- function(predicciones, dataset){
+  for (i in 1:length(predicciones)) {
+    if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
+      predicciones[i] <- floor(predicciones[i])
+    }
+    else
+      predicciones[i] <- ceiling(predicciones[i])
+  }
+  
+  mse <- mean((dataset - predicciones)^2)
+  
+  return(mse) 
+}
 #_________________________ Graficos #####################################
 
 ## Esto setea todos los parametros de fuentes a utilizar en las graficas
@@ -274,19 +301,6 @@ sample = sample.split(Por,SplitRatio = 0.80)
 Por.train = subset(Por,sample == TRUE)
 Por.test = subset(Por, sample == FALSE)
 
-error_prediccion <- function(predicciones, dataset){
-  for (i in 1:length(predicciones)) {
-    if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
-      predicciones[i] <- floor(predicciones[i])
-    }
-    else
-      predicciones[i] <- ceiling(predicciones[i])
-  }
-  
-  mse <- mean((dataset$G3 - predicciones)^2)
-
-  return(mse) 
-}
 
 #______________ Matemï¿½tica
 
@@ -884,17 +898,31 @@ x_test <- model.matrix(G3~., data = Math.test)[, -1]
 y_test <- Math.test$G3
 
 
-cv_output <- cv.glmnet(x_train, y_train, alpha = 0, nfolds = 10, 
-                       type.measure = "mse")
+# cv_output <- cv.glmnet(x_train, y_train, alpha = 0, type.measure = "mse")
+# predicciones_train <- predict(cv_output, s = cv_output$lambda.min , newx = x_train)
+# Math_training_mse_ridge <- mean((predicciones_train - y_train)^2)
+# paste("Error (mse) de entrenamiento:", Math_training_mse_ridge)
+# 
+# 
+# predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
+# Math_test_mse_ridge <- mean((predicciones_test - y_test)^2)
+# paste("Error (mse) de test:", Math_test_mse_ridge)
 
-predicciones_train <- predict(cv_output, s = cv_output$lambda.min , newx = x_train)
-Math_training_mse_ridge <- mean((predicciones_train - y_train)^2)
-paste("Error (mse) de entrenamiento:", Math_training_mse_ridge)
+X <- model.matrix(G3~., data = Math)[, -1]
+Y <- Math$G3
+cv_output <- cv.glmnet(X, Y, alpha = 0, type.measure = "mse",
+                       grouped = FALSE, nfolds = nrow(Math))
+best_lam <- cv_output$lambda.min
+Math.loo.ridge <- c()
+for (i in 1 : nrow(Math)) {
+  fit <- glmnet(X[-i,], Y[-i], alpha = 0, lambda = best_lam)
+  pred_train <- predict(cv_output, s = best_lam , newx = X[i, , drop = F])
+  Math.loo.ridge[i] <- mean((pred_train - Y[i])^2)
+}
+# Math.loo.ridge
+Math.loo.ridge <- mean(Math.loo.ridge)
+paste("Error (mse) de LooCV:", Math.loo.ridge)
 
-
-predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
-Math_test_mse_ridge <- mean((predicciones_test - y_test)^2)
-paste("Error (mse) de test:", Math_test_mse_ridge)
 
 #________ Portuguï¿½s
 
@@ -921,6 +949,21 @@ paste("Error (mse) de entrenamiento:", Por_training_mse_ridge)
 predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
 Por_test_mse_ridge <- mean((predicciones_test - y_test)^2)
 paste("Error (mse) de test:", Por_test_mse_ridge)
+
+X <- model.matrix(G3~., data = Por)[, -1]
+Y <- Por$G3
+cv_output <- cv.glmnet(X, Y, alpha = 0, type.measure = "mse",
+                       grouped = FALSE, nfolds = nrow(Por))
+best_lam <- cv_output$lambda.min
+Por.loo.ridge <- c()
+for (i in 1 : nrow(Por)) {
+  fit <- glmnet(X[-i,], Y[-i], alpha = 0, lambda = best_lam)
+  pred_train <- predict(cv_output, s = best_lam , newx = X[i, , drop = F])
+  Por.loo.ridge[i] <- mean((pred_train - Y[i])^2)
+}
+# Por.loo.ridge
+Por.loo.ridge <- mean(Por.loo.ridge)
+paste("Error (mse) de LooCV:", Por.loo.ridge)
 
 #_________________________ Analisis Regresion Elastic Net ######################
 
@@ -974,6 +1017,21 @@ for (i in 1:10) {
 
 Math.test.net <- results.min$mse
 
+X <- model.matrix(G3~., data = Math)[, -1]
+Y <- Math$G3
+cv_output <- cv.glmnet(X, Y, alpha = 0.5, type.measure = "mse",
+                       grouped = FALSE, nfolds = nrow(Math))
+best_lam <- cv_output$lambda.min
+Math.loo.ridge <- c()
+for (i in 1 : nrow(Math)) {
+  fit <- glmnet(X[-i,], Y[-i], alpha = 0.5, lambda = best_lam)
+  pred_train <- predict(cv_output, s = best_lam , newx = X[i, , drop = F])
+  Math.loo.EN[i] <- mean((pred_train - Y[i])^2)
+}
+# Math.loo.ridge
+Math.loo.EN <- mean(Math.loo.ridge)
+paste("Error (mse) de LooCV:", Math.loo.EN)
+
 
 #______ Portugues
 
@@ -1024,6 +1082,21 @@ for (i in 1:10) {
 }
 
 Por.test.net <- results.min$mse
+
+X <- model.matrix(G3~., data = Por)[, -1]
+Y <- Por$G3
+cv_output <- cv.glmnet(X, Y, alpha = .5, type.measure = "mse",
+                       grouped = FALSE, nfolds = nrow(Por))
+best_lam <- cv_output$lambda.min
+Por.loo.EN <- c()
+for (i in 1 : nrow(Por)) {
+  fit <- glmnet(X[-i,], Y[-i], alpha = 0.5, lambda = best_lam)
+  pred_train <- predict(cv_output, s = best_lam , newx = X[i, , drop = F])
+  Por.loo.EN[i] <- mean((pred_train - Y[i])^2)
+}
+# Por.loo.EN
+Por.loo.EN <- mean(Por.loo.EN)
+paste("Error (mse) de LooCV:", Por.loo.EN)
 
 #_________________________ Valores de Error para todas los metodos ##############
 df.errores <- data.frame(Error=c(error.Math,Math_test_mse,Math_test_mse_ridge,Math.test.net,
