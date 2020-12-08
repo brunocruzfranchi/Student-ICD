@@ -82,9 +82,9 @@ em.lineal <- mean(aux) # ya esta en porcentaje (ej: 3 es 3%)
 #____________ Matematica
 Math.forw<-regsubsets(G3~., nbest=1, nvmax=41,
            force.in=NULL, force.out=NULL, intercept=TRUE,
-           method=c("forward"), data = Math.train)
+           data = Math.train)
 
-reg.summary = summary(Math.forw)
+reg.summary$cp = summary(Math.forw)
 
 library(ggvis)
 rsq <- as.data.frame(summary(Math.forw)$rsq)

@@ -1,4 +1,6 @@
 
+
+
 #_________________________ Inicializacion del archivo ##########################
 
 library(ggplot2)
@@ -18,8 +20,8 @@ library(skimr)
 library(dplyr)
 library(broom)
 library(wesanderson)
+library(ggfortify)
 library("ggsci")
-require(gridExtra)
 
 #setwd("E:/Documentos/ING_BIOMEDICA/Cuarto Aï¿½o/Segundo Cuatrimestre/Introducciï¿½n a la Ciencia de Datos/Student-ICD")
 setwd("E:/Bruno/Favaloro/4 Año/2do Cuatrimestre/ICD/ProyectoFinal/Student-ICD")
@@ -40,7 +42,6 @@ error_prediccion <- function(predicciones, dataset){
   
   return(mse) 
 }
-
 error_prediccionv2 <- function(predicciones, dataset){
   for (i in 1:length(predicciones)) {
     if ((predicciones[i]-trunc(predicciones[i])) <= 0.5) {
@@ -106,6 +107,8 @@ Math$nursery <- factor(Math$nursery)
 Math$higher <- factor(Math$higher)
 Math$internet <- factor(Math$internet)
 Math$romantic <- factor(Math$romantic)
+
+
 
 Por = read.csv("student-por.csv",sep=",",header=TRUE)
 Por = Por[-18]
@@ -219,34 +222,11 @@ df.frecuencia <- function(nombre_dataset, n_umbral, iteraciones, Método){
 
 #____________ Matemática
 
-df.Math.forward <- df.frecuencia('Math', 0.40, 400, "forward")
-df.Math.backward <- df.frecuencia('Math', 0.40, 400, "backward")
-df.Math.hybrid <- df.frecuencia('Math', 0.40, 400, "seqrep")
-
-
-df.Math.full <- data.frame(Variables = c(df.Math.forward$Variables,
-                                         df.Math.backward$Variables,
-                                         df.Math.hybrid$Variables),
-                           Frecuencia = c(df.Math.forward$Frecuencia,
-                                          df.Math.backward$Frecuencia,
-                                          df.Math.hybrid$Frecuencia),
-                           Método =c(rep("Forward",length(df.Math.forward$Variables)),
-                                     rep("Backward",length(df.Math.backward$Variables)),
-                                     rep("Hybrid",length(df.Math.hybrid$Variables))))
+df.Math.forward <- df.frecuencia('Math', 0.25, 400, "forward")
+df.Math.backward <- df.frecuencia('Math', 0.25, 400, "backward")
+df.Math.hybrid <- df.frecuencia('Math', 0.25, 400, "seqrep")
 
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-
-g17 <- ggplot(data = df.Math.full, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  #geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-  #          colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Math.hybrid)))+
-  theme_light()+
-  facet_wrap(~ Método, nrow=1)+
-  theme(panel.grid = element_blank())
-
-print(g17 + mynamestheme + labs( title= "Matemática - Frecuencia", y="Frecuencia", 
-                                x = "Variables"))
 
 # Plot
 g1 <- ggplot(data = df.Math.forward, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
@@ -282,9 +262,9 @@ print(g3 + mynamestheme + labs( title= "Matemática - Hybrid", y="Frecuencia",
 #________________ Portugués
 
 
-df.Por.forward <- df.frecuencia('Por', 0.40, 400, "forward")
-df.Por.backward <- df.frecuencia('Por', 0.40, 400, "backward")
-df.Por.hybrid <- df.frecuencia('Por', 0.40, 400, "seqrep")
+df.Por.forward <- df.frecuencia('Por', 0.25, 400, "forward")
+df.Por.backward <- df.frecuencia('Por', 0.25, 400, "backward")
+df.Por.hybrid <- df.frecuencia('Por', 0.25, 400, "seqrep")
 
 # Plot
 g4 <- ggplot(data = df.Por.forward, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
@@ -318,29 +298,6 @@ print(g5 + mynamestheme + labs( title= "Portugués - Backward", y="Frecuencia",
 print(g6 + mynamestheme + labs( title= "Portugués - Hybrid", y="Frecuencia", 
                                 x = "Variables"))
 
-df.Por.full <- data.frame(Variables = c(df.Por.forward$Variables,
-                                         df.Por.backward$Variables,
-                                         df.Por.hybrid$Variables),
-                           Frecuencia = c(df.Por.forward$Frecuencia,
-                                          df.Por.backward$Frecuencia,
-                                          df.Por.hybrid$Frecuencia),
-                           Método =c(rep("Forward",length(df.Por.forward$Variables)),
-                                     rep("Backward",length(df.Por.backward$Variables)),
-                                     rep("Hybrid",length(df.Por.hybrid$Variables))))
-
-g18 <- ggplot(data = df.Por.full, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  #geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-  #          colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Por.hybrid)))+
-  theme_light()+
-  facet_wrap(~ Método, nrow=1)+
-  theme(panel.grid = element_blank())
-
-print(g18 + mynamestheme + labs( title= "Portugués - Frecuencia", y="Frecuencia", 
-                                 x = "Variables"))
-
-
 #_________________________ Calculo del Error ###################################
 
 set.seed(123)
@@ -354,6 +311,7 @@ Math.test = subset(Math, sample == FALSE)
 sample = sample.split(Por,SplitRatio = 0.80) 
 Por.train = subset(Por,sample == TRUE)
 Por.test = subset(Por, sample == FALSE)
+
 
 #______________ Matemática
 
@@ -402,43 +360,14 @@ df.errores <- data.frame(Error=c(error.Math,error.Por),
 
 # Plot
 g7 <- ggplot(data = df.errores, mapping = aes(x = Dataset, y = Error, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
+  geom_bar(stat = "identity",position = "dodge")+
   scale_fill_brewer(palette = "Set1")+
   theme_light()+
   theme_minimal()
 
-print(g7 + mynamesthemev2 + labs( title= "Selección Stepwise - ECM", 
+print(g7 + mynamesthemev2 + labs( title= "Errores - Selección Stepwise", 
                                   y="ECM", 
                                   x = "Datasets"))
-
-
-r2.Math <- c(summary(Math.lineal.forward)$r.squared,
-             summary(Math.lineal.backward)$r.squared,
-             summary(Math.lineal.hybrid)$r.squared)
-
-
-r2.Por <- c(summary(Por.lineal.forward)$r.squared,
-            summary(Por.lineal.backward)$r.squared,
-            summary(Por.lineal.hybrid)$r.squared)
-
-
-df.r2.SP <- data.frame(Error=c(r2.Math,r2.Por),
-                         Dataset=c('Matemática','Matemática','Matemática',
-                                   'Portugués','Portugués','Portugués'),
-                         Método=c('Forward','Backward','Hybrid',
-                                  'Forward','Backward','Hybrid'))
-
-# Plot
-g16 <- ggplot(data = df.r2.SP, mapping = aes(x = Dataset, y = Error, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
-  scale_fill_brewer(palette = "Set1")+
-  theme_light()+
-  theme_minimal()
-
-print(g16 + mynamesthemev2 + labs( title= "Selección Stepwise - R2", 
-                                  y="ECM", 
-                                  x = "Datasets"))
-
 
 #_________________________ Calculo del Error CV ################################
 
@@ -525,12 +454,12 @@ df.errores.cv <- data.frame(Error=c(errores.cv.Math,errores.cv.Por),
                                   'Forward','Backward','Hybrid'))
 # Plot
 g11 <- ggplot(data = df.errores.cv, mapping = aes(x = Dataset, y = Error, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
+  geom_bar(stat = "identity",position = "dodge")+
   scale_fill_brewer(palette = "Set1")+
   theme_light()+
   theme_minimal()
 
-print(g11 + mynamesthemev2 + labs( title= "Selección Stepwise - ECM CV", 
+print(g11 + mynamesthemev2 + labs( title= "Errores CV - Selección Stepwise", 
                                   y="ECM", 
                                   x = "Datasets"))
 
@@ -612,7 +541,7 @@ df.frecuencia.lasso <- function(nombre_dataset, n_umbral, iteraciones){
 
 #______________ Matemática
 
-df.Math.Lasso <- df.frecuencia.lasso('Math', 0.40 ,400)
+df.Math.Lasso <- df.frecuencia.lasso('Math', 0.25 ,400)
 
 colourCount = length(nrow(df.Math.Lasso))
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
@@ -631,7 +560,7 @@ print(g8 + mynamestheme + labs( title= "Matemática - Lasso", y="Frecuencia",
       
 #_______________ Portugués
 
-df.Por.Lasso <- df.frecuencia.lasso('Por', 0.40 ,400)
+df.Por.Lasso <- df.frecuencia.lasso('Por', 0.25 ,400)
 
 colourCount = length(nrow(df.Por.Lasso))
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
@@ -704,12 +633,6 @@ predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test
 Math_test_mse <- error_prediccionv2(predicciones_test,y_test)
 paste("Error (mse) de test:", Math_test_mse)
 
-rss.Math.Lasso <- sum((predicciones_test - y_test) ^ 2)
-tss.Math.Lasso <- sum((predicciones_test - mean(predicciones_test)) ^ 2)
-rsq.Math.Lasso <- 1 - rss.Math.Lasso/tss.Math.Lasso
-rsq.Math.Lasso
-
-
 #________ Portugués
 
 set.seed(123)
@@ -735,11 +658,6 @@ paste("Error (mse) de entrenamiento:", Por_training_mse)
 predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
 Por_test_mse <- error_prediccionv2(predicciones_test,y_test)
 paste("Error (mse) de test:", Por_test_mse)
-
-rss.Por.Lasso <- sum((predicciones_test - y_test) ^ 2)
-tss.Por.Lasso <- sum((predicciones_test - mean(predicciones_test)) ^ 2)
-rsq.Por.Lasso <- 1 - rss.Por.Lasso/tss.Por.Lasso
-rsq.Por.Lasso
 
 #_________________________ Regresion Lasso Error CV ###############################
 
@@ -914,7 +832,7 @@ df.frecuencia.ridge <- function(nombre_dataset, n_umbral, iteraciones){
 
 #______________ Matemática
 
-df.Math.Ridge <- df.frecuencia.ridge('Math', 0.40 ,400)
+df.Math.Ridge <- df.frecuencia.ridge('Math', 0.25 ,400)
 
 colourCount = length(nrow(df.Math.Lasso))
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
@@ -933,7 +851,7 @@ print(g10 + mynamestheme + labs( title= "Matemática - Ridge", y="Frecuencia",
 
 #_______________ Portugués
 
-df.Por.Ridge <- df.frecuencia.ridge('Por', 0.40 ,400)
+df.Por.Ridge <- df.frecuencia.ridge('Por', 0.25 ,400)
 
 colourCount = length(nrow(df.Por.Ridge))
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
@@ -977,12 +895,6 @@ predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test
 Math_test_mse_ridge <- mean((predicciones_test - y_test)^2)
 paste("Error (mse) de test:", Math_test_mse_ridge)
 
-rss.Math.Ridge <- sum((predicciones_test - y_test) ^ 2)
-tss.Math.Ridge<- sum((predicciones_test - mean(predicciones_test)) ^ 2)
-rsq.Math.Ridge <- 1 - rss.Math.Ridge/tss.Math.Ridge
-rsq.Math.Ridge
-
-
 #________ Portugués
 
 set.seed(123)
@@ -1008,11 +920,6 @@ paste("Error (mse) de entrenamiento:", Por_training_mse_ridge)
 predicciones_test <- predict(cv_output, s = cv_output$lambda.min , newx = x_test)
 Por_test_mse_ridge <- mean((predicciones_test - y_test)^2)
 paste("Error (mse) de test:", Por_test_mse_ridge)
-
-rss.Por.Ridge <- sum((predicciones_test - y_test) ^ 2)
-tss.Por.Ridge<- sum((predicciones_test - mean(predicciones_test)) ^ 2)
-rsq.Por.Ridge <- 1 - rss.Por.Ridge/tss.Por.Ridge
-rsq.Por.Ridge
 
 #_________________________ Regresion Ridge Error CV ############################
 
@@ -1097,11 +1004,7 @@ for (i in 1:10) {
   
   em.EN.mult <- mean((y_test - EN.pred.mult)^2)
   
-  rss <- sum((EN.pred.mult - y_test) ^ 2)
-  tss<- sum((EN.pred.mult - mean(EN.pred.mult)) ^ 2)
-  rsq <- 1 - rss/tss
-  
-  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name, R2 = rsq )
+  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
   
   results.1se <- rbind(results, temp)
 }
@@ -1112,23 +1015,14 @@ for (i in 1:10) {
   EN.pred.mult <- predict(list.of.fits[[fit.name]],
                           s = list.of.fits[[fit.name]]$lambda.min, 
                           newx = x_test) 
-  
   em.EN.mult <- mean((y_test - EN.pred.mult)^2)
-  
-  rss <- sum((EN.pred.mult - y_test) ^ 2)
-  tss<- sum((EN.pred.mult - mean(EN.pred.mult)) ^ 2)
-  rsq <- 1 - rss/tss
-  
-  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name,  R2 = rsq )
-  
+  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
   results.min <- rbind(results, temp)
 }
 
 Math.test.net <- results.min$mse
 Math.test.net
 
-rsq.Math.EN <- results.min$R2
-rsq.Math.EN
 #______ Portugues
 
 set.seed(123)
@@ -1164,11 +1058,7 @@ for (i in 1:10) {
   
   em.EN.mult <- mean((y_test - EN.pred.mult)^2)
   
-  rss <- sum((EN.pred.mult - y_test) ^ 2)
-  tss<- sum((EN.pred.mult - mean(EN.pred.mult)) ^ 2)
-  rsq <- 1 - rss/tss
-  
-  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name,  R2 = rsq )
+  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
   
   results.1se <- rbind(results, temp)
 }
@@ -1179,24 +1069,15 @@ for (i in 1:10) {
   EN.pred.mult <- predict(list.of.fits[[fit.name]],
                           s = list.of.fits[[fit.name]]$lambda.min, 
                           newx = x_test) 
-  
   em.EN.mult <- mean((y_test - EN.pred.mult)^2)
-  
-  rss <- sum((EN.pred.mult - y_test) ^ 2)
-  tss<- sum((EN.pred.mult - mean(EN.pred.mult)) ^ 2)
-  rsq <- 1 - rss/tss
-  
-  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name,  R2 = rsq )
+  temp <- data.frame(alpha = i/10, mse = em.EN.mult, fit.name = fit.name)
   results.min <- rbind(results, temp)
 }
 
 Por.test.net <- results.min$mse
 Por.test.net
 
-rsq.Por.EN <- results.min$R2
-rsq.Por.EN
-
-#_________________________ Regresion Elastic Net Error CV ######################
+#_________________________ Regresion Elastis Net Error CV ######################
 
 #______ Matematica
 X <- model.matrix(G3~., data = Math)[, -1]
@@ -1240,120 +1121,6 @@ for (i in 1 : nrow(Por)) {
 Por.loo.EN <- mean(Por.loo.EN)
 paste("Error (mse) de LooCV:", Por.loo.EN)
 
-#_________________________ Analisis Elastic Net solo de Variables  #############################
-
-df.frecuencia.Elastic <- function(nombre_dataset, n_umbral, iteraciones){
-  if (nombre_dataset == 'Math'){
-    n <- 42
-    matrix_var <- rep(0L, n)
-    variables_nombres <- c("(Intercept)","schoolMS","sexM","age","addressU","famsizeLE3", "PstatusT","Medu",
-                           "Fedu","Mjobhealth","Mjobother","Mjobservices","Mjobteacher","Fjobhealth", "Fjobother","Fjobservices",
-                           "Fjobteacher", "reasonhome", "reasonother", "reasonreputation", "guardianmother","guardianother",
-                           "traveltime", "studytime", "failures","schoolsupyes",  "famsupyes",  "paidyes"
-                           ,"activitiesyes","nurseryyes", "higheryes", "internetyes", "romanticyes", "famrel",
-                           "freetime","goout", "Dalc", "Walc", "health","absences","G1","G2")
-    dataset <- Math
-  }
-  else{
-    n <- 41
-    matrix_var <- rep(0L, n)
-    variables_nombres <- c("(Intercept)","schoolMS","sexM","age","addressU","famsizeLE3",
-                           "PstatusT","Medu","Fedu",
-                           "Mjobhealth","Mjobother","Mjobservices","Mjobteacher","Fjobhealth",
-                           "Fjobother","Fjobservices",
-                           "Fjobteacher","reasonhome","reasonother","reasonreputation"
-                           ,"guardianmother","guardianother",
-                           "traveltime","studytime","failures","schoolsupyes","famsupyes","activitiesyes","nurseryyes",
-                           "higheryes","internetyes",
-                           "romanticyes","famrel","freetime","goout","Dalc","Walc","health","absences","G1","G2")
-    dataset <- Por
-  }
-  
-  for (k in 1:iteraciones) {
-    set.seed(k)  
-    sample = sample.split(dataset, SplitRatio = 0.80) 
-    train = subset(dataset, sample == TRUE)
-    test = subset(dataset, sample == FALSE)
-    
-    x_train <- model.matrix(G3~., data = train)[, -1]
-    y_train <- train$G3
-    
-    x_test <- model.matrix(G3~., data = test)[, -1]
-    y_test <- test$G3
-    
-    
-    cv_output <- cv.glmnet(x_train, y_train, 
-                           alpha = 0.5, nfolds = 10, 
-                           type.measure = "mse",
-                           standardize = TRUE)
-    
-    best_lam <- cv_output$lambda.min
-    
-    ridge_modelo <- glmnet(x_train, y_train,
-                           alpha = 0.5, lambda = best_lam,
-                           standardize = TRUE)
-    
-    n_aux <- c()
-    n_aux <- variables_nombres[coef(ridge_modelo)@i+1]
-    
-    for (i in 1:length(n_aux)) {
-      aux <- n_aux[i]
-      for (j in 1:n) {
-        if(aux == variables_nombres[j])
-          matrix_var[j] = matrix_var[j] + 1
-      }
-    }
-    
-  }
-  
-  #Obtengo aquello que tengan mayor relevancia de acuerdo con un umbral
-  
-  umbral <- max(matrix_var)*n_umbral
-  
-  df <- data.frame(Variables = variables_nombres[matrix_var>umbral],
-                   Frecuencia = matrix_var[matrix_var>umbral])
-  
-  return(df)
-}
-
-#______________ Matemática
-
-df.Math.Elastic <- df.frecuencia.Elastic('Math', 0.40 ,400)
-
-colourCount = length(nrow(df.Math.Elastic))
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-
-# Plot
-g21 <- ggplot(data = df.Math.Elastic, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-            colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Math.Elastic)))+
-  theme_light()+
-  theme_minimal()
-
-print(g21 + mynamestheme + labs( title= "Matemática - Elastic Net", y="Frecuencia", 
-                                 x = "Variables"))
-
-#_______________ Portugués
-
-df.Por.Elastic <- df.frecuencia.Elastic('Por', 0.40 ,400)
-
-colourCount = length(nrow(df.Por.Elastic))
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-
-# Plot
-g22 <- ggplot(data = df.Por.Elastic, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-            colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Por.Elastic)))+
-  theme_light()+
-  theme_minimal()
-
-print(g22 + mynamestheme + labs( title= "Portugués - Elastic Net", y="Frecuencia", 
-                                 x = "Variables"))
-
 #_________________________ Valores de Error para todas los Métodos ##############
 
 df.errores <- data.frame(Error=c(error.Math,Math_test_mse,Math_test_mse_ridge,Math.test.net,
@@ -1366,12 +1133,12 @@ df.errores <- data.frame(Error=c(error.Math,Math_test_mse,Math_test_mse_ridge,Ma
 getPalette = colorRampPalette(brewer.pal(12, "Spectral"))
 # Plot
 g13 <- ggplot(data = df.errores, mapping = aes(x = Dataset, y = Error, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
+  geom_bar(stat = "identity",position = "dodge")+
   scale_fill_npg()+
   theme_light()+
   theme_minimal()
 
-print(g13 + mynamesthemev2 + labs(title= "Resultados - ECM", 
+print(g13 + mynamesthemev2 + labs( title= "Resultados", 
                                    y="ECM", 
                                    x = "Datasets"))
 
@@ -1390,7 +1157,7 @@ df.errores.cv <- data.frame(Error=c(errores.cv.Math, error.cv.Math.Lasso ,Math.l
 
 # Plot
 g14 <- ggplot(data = df.errores.cv, mapping = aes(x = Dataset, y = Error, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
+  geom_bar(stat = "identity",position = "dodge")+
   scale_fill_npg()+
   #scale_fill_manual(values = getPalette(nrow(df.errores.cv)))+
   theme_light()+
@@ -1400,74 +1167,3 @@ print(g14 + mynamesthemev2 + labs( title= "Resultados - CV",
                                    y="ECM", 
                                    x = "Datasets"))
 
-#_________________________ Valores de R2 de todos los Métodos ##############
-
-r2.Math <- c(summary(Math.lineal.forward)$r.squared,
-                summary(Math.lineal.backward)$r.squared,
-                summary(Math.lineal.hybrid)$r.squared)
-
-
-r2.Por <- c(summary(Por.lineal.forward)$r.squared,
-                summary(Por.lineal.backward)$r.squared,
-                summary(Por.lineal.hybrid)$r.squared)
-
-df.r2 <- data.frame(R2=c(r2.Math, rsq.Math.Lasso ,rsq.Math.Ridge, rsq.Math.EN,
-                            r2.Por, rsq.Por.Lasso, rsq.Por.Ridge, rsq.Por.EN),
-                            Dataset=c('Matemática','Matemática','Matemática','Matemática','Matemática','Matemática',
-                                      'Portugués','Portugués','Portugués','Portugués','Portugués','Portugués'),
-                            Método=c('Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet',
-                                     'Forward','Backward','Hybrid','Lasso','Ridge','ElasticNet'))
-
-# Plot
-g15 <- ggplot(data = df.r2, mapping = aes(x = Dataset, y = R2, fill = Método)) +
-  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.75))+
-  scale_fill_npg()+
-  #scale_fill_manual(values = getPalette(nrow(df.errores.cv)))+
-  theme_light()+
-  theme_minimal()
-
-print(g15 + mynamesthemev2 + labs( title= "Resultados - R2", 
-                                   y="R2", 
-                                   x = "Datasets"))
-
-
-df.Math.full.else <- data.frame(Variables = c(df.Math.Lasso$Variables,
-                                              df.Math.Elastic$Variables),
-                           Frecuencia = c(df.Math.Lasso$Frecuencia,
-                                          df.Math.Elastic$Frecuencia),
-                           Método =c(rep("Lasso",length(df.Math.Lasso$Variables)),
-                                     rep("Elastic Net",length(df.Math.Elastic$Variables))))
-
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-
-g19 <- ggplot(data = df.Math.full.else, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  #geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-  #          colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Math.Elastic)))+
-  theme_light()+
-  facet_wrap(~ Método, nrow=1)+
-  theme(panel.grid = element_blank())
-
-print(g19 + mynamestheme + labs( title= "Matemática - Frecuencia", y="Frecuencia", 
-                                 x = "Variables"))
-
-
-df.Por.full <- data.frame(Variables = c(df.Por.Lasso$Variables,
-                                        df.Por.Elastic$Variables),
-                          Frecuencia = c(df.Por.Lasso$Frecuencia,
-                                         df.Por.Elastic$Frecuencia),
-                          Método =c(rep("Lasso",length(df.Por.Lasso$Variables)),
-                                    rep("Elastic Net",length(df.Por.Elastic$Variables))))
-
-g20 <- ggplot(data = df.Por.full, mapping = aes(x = Variables, y = Frecuencia, fill = Variables)) +
-  geom_bar(stat = "identity")+
-  #geom_text(aes(label = Frecuencia), position = position_stack(vjust= 0.5),
-  #          colour = "black", size = 3)+
-  scale_fill_manual(values = getPalette(nrow(df.Por.Elastic)))+
-  theme_light()+
-  facet_wrap(~ Método, nrow=1)+
-  theme(panel.grid = element_blank())
-
-print(g20 + mynamestheme + labs( title= "Portugués - Frecuencia", y="Frecuencia", 
-                                 x = "Variables"))
